@@ -3,7 +3,6 @@
 #include "ABCharacter.h"
 #include "ABAnimInstance.h"
 
-
 // Sets default values
 AABCharacter::AABCharacter()
 {
@@ -39,6 +38,17 @@ AABCharacter::AABCharacter()
 	ArmLengthSpeed = 3.0f;
 	ArmRotationSpeed = 10.0f;
 	GetCharacterMovement()->JumpZVelocity = 800.0f;
+
+	IsAttacking = false;
+}
+
+void AABCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	auto AnimInstance = Cast<UABAnimInstance>(GetMesh()->GetAnimInstance());
+	ABCHECK(nullptr != AnimInstance);
+
+	AnimInstance->OnMontageEnded.AddDynamic(this, &AABCharacter::OnAttackMontageEnded);
 }
 
 // Called when the game starts or when spawned
@@ -194,10 +204,21 @@ void AABCharacter::ViewChange()
 
 void AABCharacter::Attack()
 {
+	if(IsAttacking) return;
+
 	auto AnimInstance = Cast<UABAnimInstance>(GetMesh()->GetAnimInstance());
-	if(nullptr == AnimInstance) return;
+
+	if(nullptr == AnimInstance) 
+		return;
 
 	AnimInstance->PlayAttackMontage();
+	IsAttacking = true;
 
 	ABLOG_S(Warning);
+}
+
+void AABCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	ABCHECK(IsAttacking);
+	IsAttacking = false;
 }
