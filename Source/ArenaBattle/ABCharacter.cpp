@@ -2,6 +2,7 @@
 
 #include "ABCharacter.h"
 #include "ABAnimInstance.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 AABCharacter::AABCharacter()
@@ -45,6 +46,9 @@ AABCharacter::AABCharacter()
 	AttackEndComboState();
 
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("ABCharacter"));
+
+	AttackRange = 200.0f;
+	AttackRadius = 50.0f;
 }
 
 void AABCharacter::PostInitializeComponents()
@@ -242,7 +246,7 @@ void AABCharacter::Attack()
 
 void AABCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-	ABCHECK(IsAttacking);
+	ABCHECK(IsAttacking); 
 	ABCHECK(CurrentCombo > 0);
 	IsAttacking = false;
 	AttackEndComboState();
@@ -273,14 +277,33 @@ void AABCharacter::AttackCheck()
 		GetActorLocation() + GetActorForwardVector() * 200.0f,
 		FQuat::Identity,
 		ECollisionChannel::ECC_GameTraceChannel2,
-		FCollisionShape::MakeSphere(50.0),
+		FCollisionShape::MakeSphere(50.0f),
 		Params);
 
 	if (bResult)
 	{
+		ABLOG(Warning, TEXT("Hit Actor Name"));
+
+
 		if (HitResult.Actor.IsValid())
 		{
 			ABLOG(Warning, TEXT("Hit Actor Name : %s"), *HitResult.Actor->GetName());
 		}
 	}
+}
+
+void AABCharacter::AttackCheck()
+{
+	FHitResult HitResult;
+	FCollisionQueryParams Params(NAME_None, false, this);
+	bool bResult = GetWorld()->SweepSingleByChannel(
+		HitResult,
+		GetActorLocation(),
+		GetActorLocation() + GetActorForwardVector() + AttackRange,
+		FQuat::Identity,
+		ECollisionChannel::ECC_GameTraceChannel2,
+		FCollisionShape::MakeSphere(AttackRadius),
+		Params);
+
+
 }

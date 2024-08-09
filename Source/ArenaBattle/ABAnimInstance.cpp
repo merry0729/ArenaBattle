@@ -42,7 +42,7 @@ void UABAnimInstance::JumpToAttackMontageSection(int32 NewSection)
 
 void UABAnimInstance::AnimNotify_AttackHitCheck()
 {
-	OnAttackHitCheck.Broadcast();
+	OnAttackHitCheck.Broadcast(); 
 }
 
 void UABAnimInstance::AnimNotify_NextAttackCheck()
