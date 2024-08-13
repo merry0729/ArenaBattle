@@ -23,6 +23,9 @@ AABItemBox::AABItemBox()
 	}
 
 	Box->SetRelativeLocation(FVector(0.0f, -3.5f, -30.0f));
+
+	Trigger->SetCollisionProfileName(TEXT("ItemBox"));
+	Box->SetCollisionProfileName(TEXT("NoCollision"));
 }
 
 // Called when the game starts or when spawned
@@ -32,3 +35,13 @@ void AABItemBox::BeginPlay()
 	
 }
 
+void AABItemBox::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	Trigger->OnComponentBeginOverlap.AddDynamic(this, &AABItemBox::OnCharacterOverlap);
+}
+
+void AABItemBox::OnCharacterOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	ABLOG_S(Warning);
+}
