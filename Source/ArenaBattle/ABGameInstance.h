@@ -43,5 +43,9 @@ public:
 	UABGameInstance();
 
 	virtual void Init() override;
+	FABCharacterData* GetABCharacterData(int32 Level);
 	
+private:
+	UPROPERTY()
+	class UDataTable* ABCharacterTable;
 };
