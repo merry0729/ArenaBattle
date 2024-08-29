@@ -1,16 +1,38 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ABAIController.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardData.h"
 
 AABAIController::AABAIController()
 {
-	RepeatInterval = 3.0f;
+	//RepeatInterval = 3.0f;
+
+	static ConstructorHelpers::FObjectFinder<UBlackboardData> BBObject(TEXT("/Game/Book/AI/BB_ABCharacter.BB_ABCharacter"));
+	if (BBObject.Succeeded())
+	{
+		BBAsset = BBObject.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTObject(TEXT("/Game/Book/AI/BT_ABCharacter.BT_ABCharacter"));
+	if (BTObject.Succeeded())
+	{
+		BTAsset = BTObject.Object;
+	}
 }
 
 void AABAIController::Possess(APawn* InPawn)
 {
 	Super::Possess(InPawn);
-	GetWorld()->GetTimerManager().SetTimer(RepeatTimerHandle, this, &AABAIController::OnRepeatTimer, RepeatInterval, true);
+	if (UseBlackboard(BBAsset, Blackboard))
+	{
+		if (!RunBehaviorTree(BTAsset))
+		{
+			ABLOG(Error, TEXT("AIController couldn't run behavior tree!"));
+		}
+	}
+
+	//GetWorld()->GetTimerManager().SetTimer(RepeatTimerHandle, this, &AABAIController::OnRepeatTimer, RepeatInterval, true);
 }
 
 void AABAIController::UnPossess()

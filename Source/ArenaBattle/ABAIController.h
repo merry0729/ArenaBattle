@@ -20,6 +20,13 @@ public:
 	virtual void UnPossess() override;
 	
 private:
+	UPROPERTY()
+	class UBehaviorTree* BTAsset;
+
+	UPROPERTY()
+	class UBlackboardData* BBAsset;
+
+private:
 	void OnRepeatTimer();
 
 	FTimerHandle RepeatTimerHandle;
