@@ -18,6 +18,9 @@ public:
 	AABAIController();
 	virtual void Possess(APawn* InPawn) override;
 	virtual void UnPossess() override;
+
+	static const FName HomePosKey;
+	static const FName PatrolPosKey;
 	
 private:
 	UPROPERTY()
@@ -32,3 +35,4 @@ private:
 	FTimerHandle RepeatTimerHandle;
 	float RepeatInterval;
 };
+ 
