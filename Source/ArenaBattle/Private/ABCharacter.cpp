@@ -8,6 +8,7 @@
 #include "Components/WidgetComponent.h"
 #include "ABCharacterWidget.h"
 #include "ABAIController.h"
+#include "ABCharacterSetting.h"
 
 // Sets default values
 AABCharacter::AABCharacter()
@@ -81,6 +82,19 @@ AABCharacter::AABCharacter()
 
 	AIControllerClass = AABAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	ABLOG(Warning, TEXT("Character Asset_1"));
+
+	auto DefaultSetting = GetDefault<UABCharacterSetting>();
+	if (DefaultSetting->CharacterAssets.Num() > 0)
+	{
+		for (auto CharacterAsset : DefaultSetting->CharacterAssets)
+		{
+			ABLOG(Warning, TEXT("Character Asset : %s"), *CharacterAsset.ToString());
+		}
+	}
+
+	ABLOG(Warning, TEXT("Character Asset_2"));
 }
 
 void AABCharacter::PostInitializeComponents()
