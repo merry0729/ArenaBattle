@@ -9,6 +9,7 @@
 #include "ABCharacterWidget.h"
 #include "ABAIController.h"
 #include "ABCharacterSetting.h"
+#include "ABGameInstance.h"
 
 // Sets default values
 AABCharacter::AABCharacter()
@@ -138,6 +139,19 @@ void AABCharacter::PostInitializeComponents()
 void AABCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (!IsPlayerControlled())
+	{
+		auto DefaultSetting = GetDefault<UABCharacterSetting>();
+		int32 RandIndex = FMath::RandRange(0, DefaultSetting->CharacterAssets.Num() - 1);
+		CharacterAssetToLoad = DefaultSetting->CharacterAssets[RandIndex];
+
+		auto ABGameInstance = Cast<UABGameInstance>(GetGameInstance());
+		if (nullptr != ABGameInstance)
+		{
+			AssetStreamingHandle = ABGameInstance->StreamableManager.RequestAsyncLoad(CharacterAssetToLoad, FStreamableDelegate::CreateUObject(this, &AABCharacter::OnAssetLoadCompleted));
+		}
+	}
 	
 	//FName WeaponSocket(TEXT("hand_rSocket"));
 	//auto CurWeapon = GetWorld()->SpawnActor<AABWeapon>(FVector::ZeroVector, FRotator::ZeroRotator);
@@ -432,5 +446,15 @@ void AABCharacter::PossessedBy(AController* NewController)
 	{
 		SetControlMode(EControlMode::NPC);
 		GetCharacterMovement()->MaxWalkSpeed = 300.0f;
+	}
+}
+
+void AABCharacter::OnAssetLoadCompleted()
+{
+	AssetStreamingHandle->ReleaseHandle();
+	TSoftObjectPtr<USkeletalMesh> LoadedAssetPath(CharacterAssetToLoad);
+	if (LoadedAssetPath.IsValid())
+	{
+		GetMesh()->SetSkeletalMesh(LoadedAssetPath.Get());
 	}
 }
