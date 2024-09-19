@@ -107,6 +107,12 @@ void AABSection::SetState(ESectionState NewState)
 	CurrentState = NewState;
 }
 
+void AABSection::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	SetState(bNoBattle ? ESectionState::COMPLETE : ESectionState::READY);
+}
+
 void AABSection::OperateGates(bool bOpen)
 {
 	for (UStaticMeshComponent* Gate : GateMeshes)

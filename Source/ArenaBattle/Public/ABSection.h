@@ -14,6 +14,7 @@ class ARENABATTLE_API AABSection : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AABSection();
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 protected:
 	// Called when the game starts or when spawned
