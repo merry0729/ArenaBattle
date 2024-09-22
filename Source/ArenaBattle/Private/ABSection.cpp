@@ -39,7 +39,7 @@ AABSection::AABSection()
 		ABLOG(Error, TEXT("Failed to load staticmesh asset. : %s"), *GateAssetPath);
 	}
 
-	static FName GateSockets[] = { { TEXT("+XGate") }, { TEXT("-Gate") }, {TEXT("+YGate") }, {TEXT("-Gate") }};
+	static FName GateSockets[] = { { TEXT("+XGate") }, { TEXT("-XGate") }, {TEXT("+YGate") }, {TEXT("-YGate") }};
 	for (FName GateSocket : GateSockets)
 	{
 		ABCHECK(Mesh->DoesSocketExist(GateSocket));
@@ -181,5 +181,5 @@ void AABSection::OnGateTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 
 void AABSection::OnNPCSpawn()
 {
-	GetWorld()->SpawnActor<AABCharacter>(GetActorLocation() + FVector::UpVector * 80.0f, FRotator::ZeroRotator);
+	GetWorld()->SpawnActor<AABCharacter>(GetActorLocation() + FVector::UpVector * 88.0f, FRotator::ZeroRotator);
 }
