@@ -113,7 +113,7 @@ void AABSection::SetState(ESectionState NewState)
 			Trigger->SetCollisionProfileName(TEXT("NoCollision"));
 			for (UBoxComponent* GateTrigger : GateTriggers)
 			{
-				GateTrigger->SetCollisionProfileName(TEXT("ABTrigger"));
+				//GateTrigger->SetCollisionProfileName(TEXT("ABTrigger"));
 			}
 
 			OperateGates(true);
@@ -132,10 +132,10 @@ void AABSection::OnConstruction(const FTransform& Transform)
 
 void AABSection::OperateGates(bool bOpen)
 {
-	for (UStaticMeshComponent* Gate : GateMeshes)
+	/*for (UStaticMeshComponent* Gate : GateMeshes)
 	{
 		Gate->SetRelativeRotation(bOpen ? FRotator(0.0f, -90.0f, 0.0f) : FRotator::ZeroRotator);
-	}
+	}*/
 }
 
 void AABSection::OnTriggerBeginOverlap(UPrimitiveComponent* OveralppedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
