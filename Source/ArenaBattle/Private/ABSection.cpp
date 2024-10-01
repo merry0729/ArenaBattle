@@ -15,7 +15,7 @@ AABSection::AABSection()
 
 	FString AssetPath = TEXT("/Game/Book/StaticMesh/SM_SQUARE.SM_SQUARE");
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> SM_SQUARE(*AssetPath);
-	if(SM_SQUARE.Succeeded())
+	if (SM_SQUARE.Succeeded())
 	{
 		Mesh->SetStaticMesh(SM_SQUARE.Object);
 	}
@@ -27,7 +27,7 @@ AABSection::AABSection()
 	Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("TRIGGER"));
 	Trigger->SetBoxExtent(FVector(775.0f, 775.0f, 300.0f));
 	Trigger->SetupAttachment(RootComponent);
-	Trigger->SetRelativeLocation(FVector(0.0f, 0.0f, 250.f));
+	Trigger->SetRelativeLocation(FVector(0.0f, 0.0f, 250.0f));
 	Trigger->SetCollisionProfileName(TEXT("ABTrigger"));
 
 	Trigger->OnComponentBeginOverlap.AddDynamic(this, &AABSection::OnTriggerBeginOverlap);
@@ -39,14 +39,14 @@ AABSection::AABSection()
 		ABLOG(Error, TEXT("Failed to load staticmesh asset. : %s"), *GateAssetPath);
 	}
 
-	static FName GateSockets[] = { { TEXT("+XGate") }, { TEXT("-XGate") }, {TEXT("+YGate") }, {TEXT("-YGate") }};
+	static FName GateSockets[] = { {TEXT("+XGate")}, {TEXT("-XGate")}, {TEXT("+YGate")}, {TEXT("-YGate")} };
 	for (FName GateSocket : GateSockets)
 	{
 		ABCHECK(Mesh->DoesSocketExist(GateSocket));
 		UStaticMeshComponent* NewGate = CreateDefaultSubobject<UStaticMeshComponent>(*GateSocket.ToString());
 		NewGate->SetStaticMesh(SM_GATE.Object);
 		NewGate->SetupAttachment(RootComponent, GateSocket);
-		NewGate->SetRelativeLocation(FVector(0.0f, -80.0f, 0.0f));
+		NewGate->SetRelativeLocation(FVector(0.0f, -80.5f, 0.0f));
 		GateMeshes.Add(NewGate);
 
 		UBoxComponent* NewGateTrigger = CreateDefaultSubobject<UBoxComponent>(*GateSocket.ToString().Append(TEXT("Trigger")));
@@ -66,6 +66,13 @@ AABSection::AABSection()
 	ItemBoxSpawnTime = 5.0f;
 }
 
+
+void AABSection::OnConstruction(const FTransform & Transform)
+{
+	Super::OnConstruction(Transform);
+	SetState(bNoBattle ? ESectionState::COMPLETE : ESectionState::READY);
+}
+
 // Called when the game starts or when spawned
 void AABSection::BeginPlay()
 {
@@ -78,67 +85,78 @@ void AABSection::SetState(ESectionState NewState)
 {
 	switch (NewState)
 	{
-		case ESectionState::READY:
+	case ESectionState::READY:
+	{
+		Trigger->SetCollisionProfileName(TEXT("ABTrigger"));
+		for (UBoxComponent* GateTrigger : GateTriggers)
 		{
-			Trigger->SetCollisionProfileName(TEXT("ABTrigger"));
-			for (UBoxComponent* GateTrigger : GateTriggers)
-			{
-				GateTrigger->SetCollisionProfileName(TEXT("NoCollision"));
-			}
-
-			OperateGates(true);
-			break;
+			GateTrigger->SetCollisionProfileName(TEXT("NoCollision"));
 		}
-		case ESectionState::BATTLE:
-		{
-			Trigger->SetCollisionProfileName(TEXT("NoCollision"));
-			for (UBoxComponent* GateTrigger : GateTriggers)
-			{
-				GateTrigger->SetCollisionProfileName(TEXT("NoCollision"));
-			}
 
-			OperateGates(false);
-
-			GetWorld()->GetTimerManager().SetTimer(SpawnNPCTimerHandle, FTimerDelegate::CreateUObject(this, &AABSection::OnNPCSpawn), EnemySpawnTime, false);
-
-			GetWorld()->GetTimerManager().SetTimer(SpawnItemBoxTimerHandle, FTimerDelegate::CreateLambda([this]() -> void {
-				FVector2D RandXY = FMath::RandPointInCircle(600.0f);
-				GetWorld()->SpawnActor<AABItemBox>(GetActorLocation() + FVector(RandXY, 30.0f), FRotator::ZeroRotator);
-				}), ItemBoxSpawnTime, false);
-
-			break;
-		}
-		case ESectionState::COMPLETE:
-		{
-			Trigger->SetCollisionProfileName(TEXT("NoCollision"));
-			for (UBoxComponent* GateTrigger : GateTriggers)
-			{
-				//GateTrigger->SetCollisionProfileName(TEXT("ABTrigger"));
-			}
-
-			OperateGates(true);
+		OperateGates(true);
 		break;
-		}
 	}
-	
-	CurrentState = NewState;
-}
+	case ESectionState::BATTLE:
+	{
+		Trigger->SetCollisionProfileName(TEXT("NoCollision"));
+		for (UBoxComponent* GateTrigger : GateTriggers)
+		{
+			GateTrigger->SetCollisionProfileName(TEXT("NoCollision"));
+		}
 
-void AABSection::OnConstruction(const FTransform& Transform)
-{
-	Super::OnConstruction(Transform);
-	SetState(bNoBattle ? ESectionState::COMPLETE : ESectionState::READY);
+		OperateGates(false);
+
+		GetWorld()->GetTimerManager().SetTimer(SpawnNPCTimerHandle, FTimerDelegate::CreateUObject(this, &AABSection::OnNPCSpawn), EnemySpawnTime, false);
+
+		GetWorld()->GetTimerManager().SetTimer(SpawnItemBoxTimerHandle, FTimerDelegate::CreateLambda([this]() -> void {
+			FVector2D RandXY = FMath::RandPointInCircle(600.0f);
+			GetWorld()->SpawnActor<AABItemBox>(GetActorLocation() + FVector(RandXY, 30.0f), FRotator::ZeroRotator);
+		}), ItemBoxSpawnTime, false);
+		break;
+	}
+	case ESectionState::COMPLETE:
+	{
+		Trigger->SetCollisionProfileName(TEXT("NoCollision"));
+		for (UBoxComponent* GateTrigger : GateTriggers)
+		{
+			if (GateTrigger)
+			{
+				GateTrigger->SetCollisionProfileName(TEXT("ABTrigger"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("GateTrigger is null!"));
+			}
+
+			//GateTrigger->SetCollisionProfileName(TEXT("ABTrigger"));
+		}
+
+		OperateGates(true);
+		break;
+	}
+	}
+
+	CurrentState = NewState;
 }
 
 void AABSection::OperateGates(bool bOpen)
 {
-	/*for (UStaticMeshComponent* Gate : GateMeshes)
+	for (UStaticMeshComponent* Gate : GateMeshes)
 	{
-		Gate->SetRelativeRotation(bOpen ? FRotator(0.0f, -90.0f, 0.0f) : FRotator::ZeroRotator);
-	}*/
+		if (Gate)
+		{
+			Gate->SetRelativeRotation(bOpen ? FRotator(0.0f, -90.0f, 0.0f) : FRotator::ZeroRotator);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Gate is null!"));
+		}
+
+		//Gate->SetRelativeRotation(bOpen ? FRotator(0.0f, -90.0f, 0.0f) : FRotator::ZeroRotator);
+	}
 }
 
-void AABSection::OnTriggerBeginOverlap(UPrimitiveComponent* OveralppedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AABSection::OnTriggerBeginOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	if (CurrentState == ESectionState::READY)
 	{
@@ -146,7 +164,7 @@ void AABSection::OnTriggerBeginOverlap(UPrimitiveComponent* OveralppedComponent,
 	}
 }
 
-void AABSection::OnGateTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AABSection::OnGateTriggerBeginOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	ABCHECK(OverlappedComponent->ComponentTags.Num() == 1);
 
@@ -175,7 +193,7 @@ void AABSection::OnGateTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 	}
 	else
 	{
-		ABLOG(Warning, TEXT("New section area is not empty"));
+		ABLOG(Warning, TEXT("New section area is not empty."));
 	}
 }
 

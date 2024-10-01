@@ -11,7 +11,7 @@ class ARENABATTLE_API AABSection : public AActor
 {
 	GENERATED_BODY()
 	
-public:	
+	public:	
 	// Sets default values for this actor's properties
 	AABSection();
 	virtual void OnConstruction(const FTransform& Transform) override;
@@ -25,7 +25,7 @@ private:
 	{
 		READY = 0,
 		BATTLE,
-		COMPLETE,
+		COMPLETE
 	};
 
 	void SetState(ESectionState NewState);
@@ -34,7 +34,7 @@ private:
 	void OperateGates(bool bOpen = true);
 
 	UFUNCTION()
-	void OnTriggerBeginOverlap(UPrimitiveComponent* OverlapComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
+	void OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
 
 	UFUNCTION()
 	void OnGateTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
@@ -46,11 +46,11 @@ private:
 	TArray<UStaticMeshComponent*> GateMeshes;
 
 	UPROPERTY(VisibleAnywhere, Category = Trigger, Meta = (AllowPrivateAccess = true))
-	TArray<UBoxComponent*>  GateTriggers;
+	TArray<UBoxComponent*> GateTriggers;
 
 	UPROPERTY(VisibleAnywhere, Category = Mesh, Meta = (AllowPrivateAccess = true))
 	UStaticMeshComponent* Mesh;
-	
+
 	UPROPERTY(VisibleAnywhere, Category = Trigger, Meta = (AllowPrivateAccess = true))
 	UBoxComponent* Trigger;
 
